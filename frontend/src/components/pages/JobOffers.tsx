@@ -345,6 +345,34 @@ const JobOffers = () => {
             ))}
           </motion.div>
         </AnimatePresence>
+
+        {/* ✅ Admin Login Dialog */}
+        <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Admin Login</DialogTitle>
+              <DialogDescription>Enter admin credentials to manage job offers.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 mt-4">
+              <Label>Username</Label>
+              <Input
+                placeholder="admin"
+                value={adminCreds.username}
+                onChange={(e) => setAdminCreds({ ...adminCreds, username: e.target.value })}
+              />
+              <Label>Password</Label>
+              <Input
+                type="password"
+                placeholder="********"
+                value={adminCreds.password}
+                onChange={(e) => setAdminCreds({ ...adminCreds, password: e.target.value })}
+              />
+              <Button onClick={handleAdminLogin} className="w-full bg-blue-600 text-white mt-3">
+                Login
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
