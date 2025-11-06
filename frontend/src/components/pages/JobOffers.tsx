@@ -343,6 +343,39 @@ const JobOffers = () => {
             ))}
           </motion.div>
         </AnimatePresence>
+        
+        {/* ✅ View Job Details Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-lg">
+            {selectedJob && (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{selectedJob.title}</DialogTitle>
+                  <DialogDescription>{selectedJob.companyName}</DialogDescription>
+                </DialogHeader>
+                <div className="text-sm text-gray-700 space-y-2">
+                  <p><strong>Type:</strong> {selectedJob.type}</p>
+                  <p><strong>Location:</strong> {selectedJob.location}</p>
+                  <p><strong>Compensation:</strong> ₹{selectedJob.compensation || 'N/A'}</p>
+                  <p><strong>Deadline:</strong> {selectedJob.deadline ? new Date(selectedJob.deadline).toLocaleDateString() : 'N/A'}</p>
+                  <p><strong>Description:</strong> {selectedJob.description || 'No description available.'}</p>
+
+                  <div className="bg-blue-50 p-3 rounded-md mt-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <GraduationCap className="h-4 w-4 text-blue-600" />
+                      <strong>Eligibility</strong>
+                    </div>
+                    <ul className="list-disc pl-6">
+                      {selectedJob.minGPA && <li>Minimum GPA: {selectedJob.minGPA}</li>}
+                      {selectedJob.minTenth && <li>10th Marks: {selectedJob.minTenth}%</li>}
+                      {selectedJob.minTwelfth && <li>12th Marks: {selectedJob.minTwelfth}%</li>}
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* ✅ Add / Edit Job Dialog */}
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
