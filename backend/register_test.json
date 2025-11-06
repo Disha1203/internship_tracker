@@ -1,0 +1,13 @@
+{
+    "name": "John Doe",
+    "email": "doe@example.com",
+    "phone": "9876543210",
+    "degree": "B.Tech",
+    "branch": "Computer Science",
+    "batch": 2025,
+    "tenthMarks": 89.5,
+    "twelfthMarks": 92.0,
+    "gpa": 8.7,
+    "password": "mypassword123"
+  }
+  
