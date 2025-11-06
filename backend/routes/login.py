@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from db import get_db_connection
 import MySQLdb.cursors
 import jwt
+from flask_cors import CORS
 import datetime
 import os
 import bcrypt
