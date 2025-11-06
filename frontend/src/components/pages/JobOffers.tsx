@@ -35,6 +35,7 @@ interface JobOffer {
 const JobOffers = () => {
   const API_URL = 'http://127.0.0.1:5000/api/joboffers';
   const COMPANY_API = 'http://127.0.0.1:5000/api/companies';
+  const APPLY_API = 'http://127.0.0.1:5000/api/apply';
   const { currentUser } = useAuth();
 
   const [jobs, setJobs] = useState<JobOffer[]>([]);
@@ -50,6 +51,7 @@ const JobOffers = () => {
   const [formData, setFormData] = useState<any>({});
   const [filters, setFilters] = useState({ type: '', search: '' });
   const [activeTab, setActiveTab] = useState<'all' | 'eligible'>('all');
+  const [appliedJobs, setAppliedJobs] = useState<number[]>([]); // ✅ Track applied jobs
 
   // ✅ Fetch Jobs
   const fetchJobs = async () => {
@@ -77,10 +79,28 @@ const JobOffers = () => {
     }
   };
 
+  // ✅ Fetch applied jobs for the current student
+  const fetchAppliedJobs = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/applied/${currentUser.id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAppliedJobs(data.map((a: any) => a.JobID)); // store JobIDs
+      }
+    } catch {
+      console.error('Could not fetch applied jobs');
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
     fetchCompanies();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) fetchAppliedJobs();
+  }, [currentUser]);
 
   // ✅ Admin Login
   const handleAdminLogin = () => {
@@ -168,6 +188,35 @@ const JobOffers = () => {
     } finally {
       setDeleteDialogOpen(false);
       setDeleteJobId(null);
+    }
+  };
+
+  // ✅ Apply for a Job
+  const handleApply = async (jobId: number) => {
+    if (!currentUser) {
+      toast.error('Please log in to apply.');
+      return;
+    }
+
+    try {
+      const res = await fetch(APPLY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: currentUser.id,
+          job_id: jobId,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Successfully applied for the job!');
+        setAppliedJobs((prev) => [...prev, jobId]);
+      } else {
+        toast.error(data.error || 'Failed to apply for the job.');
+      }
+    } catch {
+      toast.error('Server error while applying.');
     }
   };
 
@@ -267,6 +316,19 @@ const JobOffers = () => {
                   </p>
                   <div className="flex gap-2 mt-4">
                     <Button onClick={() => { setSelectedJob(job); setViewDialogOpen(true); }} size="sm">View</Button>
+
+                    {/* ✅ Apply Button visible only in Eligible tab */}
+                    {activeTab === 'eligible' && !isAdmin && (
+                      <Button
+                        size="sm"
+                        className="bg-green-600 text-white hover:bg-green-700"
+                        disabled={appliedJobs.includes(job.id)}
+                        onClick={() => handleApply(job.id)}
+                      >
+                        {appliedJobs.includes(job.id) ? 'Applied' : 'Apply'}
+                      </Button>
+                    )}
+
                     {isAdmin && (
                       <>
                         <Button variant="outline" size="sm" onClick={() => { setFormData(job); setAddDialogOpen(true); }}>
@@ -283,138 +345,6 @@ const JobOffers = () => {
             ))}
           </motion.div>
         </AnimatePresence>
-
-        {/* View Dialog */}
-        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="max-w-lg">
-            {selectedJob && (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{selectedJob.title}</DialogTitle>
-                  <DialogDescription>{selectedJob.companyName}</DialogDescription>
-                </DialogHeader>
-                <div className="text-sm text-gray-700 space-y-2">
-                  <p><strong>Type:</strong> {selectedJob.type}</p>
-                  <p><strong>Location:</strong> {selectedJob.location}</p>
-                  <p><strong>Compensation:</strong> ₹{selectedJob.compensation || 'N/A'}</p>
-                  <p><strong>Deadline:</strong> {selectedJob.deadline ? new Date(selectedJob.deadline).toLocaleDateString() : 'N/A'}</p>
-                  <p><strong>Description:</strong> {selectedJob.description || 'No description available.'}</p>
-                  <div className="bg-blue-50 p-3 rounded-md mt-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <GraduationCap className="h-4 w-4 text-blue-600" />
-                      <strong>Eligibility</strong>
-                    </div>
-                    <ul className="list-disc pl-6">
-                      {selectedJob.minGPA && <li>Minimum GPA: {selectedJob.minGPA}</li>}
-                      {selectedJob.minTenth && <li>10th Marks: {selectedJob.minTenth}%</li>}
-                      {selectedJob.minTwelfth && <li>12th Marks: {selectedJob.minTwelfth}%</li>}
-                    </ul>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* ✅ Add/Edit Job Dialog */}
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{formData.id ? 'Edit Job Offer' : 'Add New Job Offer'}</DialogTitle>
-              <DialogDescription>Enter job details below.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-3">
-              <Label>Title</Label>
-              <Input value={formData.title || ''} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-
-              <Label>Job Type</Label>
-              <select className="border rounded-md w-full p-2" value={formData.type || ''} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-                <option value="">Select Type</option>
-                <option value="Internship">Internship</option>
-                <option value="Full-Time">Full-Time</option>
-              </select>
-
-              <Label>Company</Label>
-              <select className="border rounded-md w-full p-2" value={formData.companyId || ''} onChange={(e) => setFormData({ ...formData, companyId: parseInt(e.target.value) })}>
-                <option value="">Select Company</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-
-              <Label>Location</Label>
-              <Input value={formData.location || ''} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-
-              <Label>Compensation (₹)</Label>
-              <Input type="number" value={formData.compensation || ''} onChange={(e) => setFormData({ ...formData, compensation: e.target.value })} />
-
-              <Label>Deadline</Label>
-              <Input type="date" value={formData.deadline ? formData.deadline.split('T')[0] : ''} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
-
-              <Label>Minimum GPA</Label>
-              <Input type="number" step="0.1" value={formData.minGPA || ''} onChange={(e) => setFormData({ ...formData, minGPA: e.target.value })} />
-
-              <Label>Minimum 10th Marks (%)</Label>
-              <Input type="number" value={formData.minTenth || ''} onChange={(e) => setFormData({ ...formData, minTenth: e.target.value })} />
-
-              <Label>Minimum 12th Marks (%)</Label>
-              <Input type="number" value={formData.minTwelfth || ''} onChange={(e) => setFormData({ ...formData, minTwelfth: e.target.value })} />
-
-              <Label>Description</Label>
-              <Input value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-
-              <Button onClick={handleSaveJob} className="bg-green-600 text-white mt-3">
-                {formData.id ? 'Update Job' : 'Create Job'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* ✅ Delete Confirmation Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="max-w-sm text-center">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-center gap-2 text-red-600">
-                <AlertTriangle className="h-5 w-5" /> Confirm Deletion
-              </DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this job offer? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-center gap-3 mt-4">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDeleteJob}>Delete</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Admin Login Dialog */}
-        <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle>Admin Login</DialogTitle>
-              <DialogDescription>Enter admin credentials to manage job offers.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Label>Username</Label>
-              <Input
-                placeholder="admin"
-                value={adminCreds.username}
-                onChange={(e) => setAdminCreds({ ...adminCreds, username: e.target.value })}
-              />
-              <Label>Password</Label>
-              <Input
-                type="password"
-                placeholder="********"
-                value={adminCreds.password}
-                onChange={(e) => setAdminCreds({ ...adminCreds, password: e.target.value })}
-              />
-              <Button onClick={handleAdminLogin} className="w-full bg-blue-600 text-white">
-                Login
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
