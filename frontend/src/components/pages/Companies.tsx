@@ -50,9 +50,6 @@ const Companies = () => {
     contactPhone: "",
   });
 
-  const adminUsername = "admin";
-  const adminPassword = "admin123";
-
   const API_BASE = "http://127.0.0.1:5000/api/companies";
 
   const fetchCompanies = async () => {
@@ -62,7 +59,7 @@ const Companies = () => {
       if (!res.ok) throw new Error("Failed to fetch companies");
       const data = await res.json();
       setCompanies(data);
-    } catch (err: any) {
+    } catch {
       toast.error("Error fetching companies");
     } finally {
       setLoading(false);
@@ -73,12 +70,10 @@ const Companies = () => {
     fetchCompanies();
   }, []);
 
-  // Handle form input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Open Add form
   const openAddForm = () => {
     setEditingCompany(null);
     setFormData({
@@ -90,7 +85,6 @@ const Companies = () => {
     setOpenForm(true);
   };
 
-  // Open Edit form
   const openEditForm = (company: Company) => {
     setEditingCompany(company);
     setFormData({
@@ -102,7 +96,6 @@ const Companies = () => {
     setOpenForm(true);
   };
 
-  // Save (Add or Edit)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = editingCompany ? "PUT" : "POST";
@@ -113,11 +106,7 @@ const Companies = () => {
     try {
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Username": adminUsername,
-          "X-Admin-Password": adminPassword,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -136,17 +125,10 @@ const Companies = () => {
     }
   };
 
-  // Delete
   const handleDeleteCompany = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this company?")) return;
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
-        method: "DELETE",
-        headers: {
-          "X-Admin-Username": adminUsername,
-          "X-Admin-Password": adminPassword,
-        },
-      });
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed");
       toast.success("Company deleted successfully");
@@ -172,8 +154,7 @@ const Companies = () => {
               </h1>
             </div>
             <p className="text-gray-600 text-sm">
-              Explore companies hiring through our placement program. Click on
-              any company to view their job offers.
+              Explore companies hiring through our placement program.
             </p>
           </div>
 
@@ -191,78 +172,56 @@ const Companies = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {companies.map((company, index) => {
-              const colors = [
-                "from-blue-400 to-blue-600",
-                "from-green-400 to-green-600",
-                "from-purple-400 to-purple-600",
-                "from-orange-400 to-orange-600",
-                "from-pink-400 to-pink-600",
-                "from-indigo-400 to-indigo-600",
-              ];
-              const colorClass = colors[index % colors.length];
-
-              return (
-                <Card
-                  key={company.id}
-                  className="border-2 border-purple-100 hover:border-purple-300 hover:shadow-lg transition-all bg-white group relative"
+            {companies.map((company, index) => (
+              <Card
+                key={company.id}
+                className="border-2 border-purple-100 hover:border-purple-300 hover:shadow-lg transition-all bg-white group relative"
+              >
+                <CardHeader
+                  onClick={() => handleCompanyClick(company.id)}
+                  className="cursor-pointer"
                 >
-                  <CardHeader
-                    onClick={() => handleCompanyClick(company.id)}
-                    className="cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div
-                        className={`p-3 bg-gradient-to-br ${colorClass} rounded-xl mb-3 shadow-md group-hover:scale-110 transition-transform`}
-                      >
-                        <Building2 className="h-8 w-8 text-white" />
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-purple-600 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <CardTitle className="text-gray-900 group-hover:text-purple-600 transition-colors">
-                      {company.name}
-                    </CardTitle>
-                    <CardDescription>
-                      <Badge
-                        variant="outline"
-                        className="border-orange-300 text-orange-600 bg-orange-50 mt-2"
-                      >
-                        {company.industry}
-                      </Badge>
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600">
-                      {company.contactEmail}{" "}
-                      {company.contactPhone && `• ${company.contactPhone}`}
-                    </p>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditForm(company)}
-                        className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                      >
-                        <Edit2 className="h-4 w-4 mr-1" /> Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteCompany(company.id)}
-                        className="border-red-300 text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" /> Delete
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  <CardTitle className="text-gray-900 group-hover:text-purple-600 transition-colors">
+                    {company.name}
+                  </CardTitle>
+                  <CardDescription>
+                    <Badge
+                      variant="outline"
+                      className="border-orange-300 text-orange-600 bg-orange-50 mt-2"
+                    >
+                      {company.industry}
+                    </Badge>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">
+                    {company.contactEmail}{" "}
+                    {company.contactPhone && `• ${company.contactPhone}`}
+                  </p>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditForm(company)}
+                    >
+                      <Edit2 className="h-4 w-4 mr-1" /> Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteCompany(company.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Dialog Form */}
+      {/* Add/Edit Company Dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -275,44 +234,35 @@ const Companies = () => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div>
-              <Label htmlFor="name">Company Name</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="industry">Industry</Label>
-              <Input
-                id="industry"
-                name="industry"
-                value={formData.industry}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="contactEmail">Contact Email</Label>
-              <Input
-                id="contactEmail"
-                name="contactEmail"
-                value={formData.contactEmail}
-                onChange={handleChange}
-                type="email"
-              />
-            </div>
-            <div>
-              <Label htmlFor="contactPhone">Contact Phone</Label>
-              <Input
-                id="contactPhone"
-                name="contactPhone"
-                value={formData.contactPhone}
-                onChange={handleChange}
-              />
-            </div>
+            <Label>Company Name</Label>
+            <Input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+
+            <Label>Industry</Label>
+            <Input
+              name="industry"
+              value={formData.industry}
+              onChange={handleChange}
+            />
+
+            <Label>Contact Email</Label>
+            <Input
+              name="contactEmail"
+              type="email"
+              value={formData.contactEmail}
+              onChange={handleChange}
+            />
+
+            <Label>Contact Phone</Label>
+            <Input
+              name="contactPhone"
+              value={formData.contactPhone}
+              onChange={handleChange}
+            />
 
             <DialogFooter className="mt-6">
               <Button
