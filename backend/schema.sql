@@ -251,6 +251,41 @@ END$$
 
 DELIMITER ;
 
+DELIMITER $$
+
+CREATE TRIGGER recheck_applications_after_job_update
+AFTER UPDATE ON JOB_OFFER
+FOR EACH ROW
+BEGIN
+    -- Only proceed if eligibility criteria were modified
+    IF (OLD.MinGPA <> NEW.MinGPA)
+       OR (OLD.MinTenthMarks <> NEW.MinTenthMarks)
+       OR (OLD.MinTwelfthMarks <> NEW.MinTwelfthMarks) THEN
+
+        -- Mark all existing applications as "Under Review"
+        UPDATE APPLICATIONS
+        SET Status = 'Under Review'
+        WHERE JobID = NEW.JobID;
+
+        -- Optionally, mark clearly ineligible students as "Rejected"
+        UPDATE APPLICATIONS a
+        JOIN STUDENT s ON a.StudentID = s.student_id
+        SET a.Status = 'Rejected'
+        WHERE a.JobID = NEW.JobID
+          AND (
+              (NEW.MinGPA IS NOT NULL AND s.gpa < NEW.MinGPA)
+              OR (NEW.MinTenthMarks IS NOT NULL AND s.tenth_marks < NEW.MinTenthMarks)
+              OR (NEW.MinTwelfthMarks IS NOT NULL AND s.twelfth_marks < NEW.MinTwelfthMarks)
+          );
+
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+
+
 
 
 
