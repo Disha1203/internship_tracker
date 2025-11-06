@@ -218,3 +218,41 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER check_eligibility_before_apply
+BEFORE INSERT ON APPLICATIONS
+FOR EACH ROW
+BEGIN
+    DECLARE student_gpa DECIMAL(3,2);
+    DECLARE tenth DECIMAL(5,2);
+    DECLARE twelfth DECIMAL(5,2);
+    DECLARE min_gpa DECIMAL(3,2);
+    DECLARE min_tenth DECIMAL(5,2);
+    DECLARE min_twelfth DECIMAL(5,2);
+
+    -- Fetch student's academic info and job requirements
+    SELECT s.gpa, s.tenth_marks, s.twelfth_marks,
+           j.MinGPA, j.MinTenthMarks, j.MinTwelfthMarks
+    INTO student_gpa, tenth, twelfth, min_gpa, min_tenth, min_twelfth
+    FROM STUDENT s
+    JOIN JOB_OFFER j ON j.JobID = NEW.JobID
+    WHERE s.student_id = NEW.StudentID;
+
+    -- Validate eligibility criteria
+    IF (min_gpa IS NOT NULL AND student_gpa < min_gpa)
+       OR (min_tenth IS NOT NULL AND tenth < min_tenth)
+       OR (min_twelfth IS NOT NULL AND twelfth < min_twelfth) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Application blocked: Student not eligible for this job offer';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+
+
+
+
