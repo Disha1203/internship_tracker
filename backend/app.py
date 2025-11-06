@@ -39,17 +39,17 @@ def create_app():
     app.register_blueprint(companies_bp)
 
     # ✅ Always include CORS headers
-    @app.after_request
-    def add_headers(response):
-        origin = request.headers.get("Origin")
-        if origin in ["http://localhost:3000", "http://127.0.0.1:3000"]:
-            response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = (
-            "Content-Type,Authorization,X-Admin-Username,X-Admin-Password"
-        )
-        return response
+    # @app.after_request
+    # def add_headers(response):
+    #     origin = request.headers.get("Origin")
+    #     if origin in ["http://localhost:3000", "http://127.0.0.1:3000"]:
+    #         response.headers["Access-Control-Allow-Origin"] = origin
+    #     response.headers["Access-Control-Allow-Credentials"] = "true"
+    #     response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+    #     response.headers["Access-Control-Allow-Headers"] = (
+    #         "Content-Type,Authorization,X-Admin-Username,X-Admin-Password"
+    #     )
+    #     return response
 
     @app.before_request
     def handle_preflight():
