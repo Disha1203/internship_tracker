@@ -51,7 +51,7 @@ const JobOffers = () => {
   const [formData, setFormData] = useState<any>({});
   const [filters, setFilters] = useState({ type: '', search: '' });
   const [activeTab, setActiveTab] = useState<'all' | 'eligible'>('all');
-  const [appliedJobs, setAppliedJobs] = useState<number[]>([]); // ✅ Track applied jobs
+  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
 
   // ✅ Fetch Jobs
   const fetchJobs = async () => {
@@ -86,7 +86,7 @@ const JobOffers = () => {
       const res = await fetch(`http://127.0.0.1:5000/api/applied/${currentUser.id}`);
       const data = await res.json();
       if (res.ok) {
-        setAppliedJobs(data.map((a: any) => a.JobID)); // store JobIDs
+        setAppliedJobs(data.map((a: any) => a.JobID));
       }
     } catch {
       console.error('Could not fetch applied jobs');
@@ -220,7 +220,6 @@ const JobOffers = () => {
     }
   };
 
-  // ✅ Eligibility Filter
   const isEligible = (job: JobOffer): boolean => {
     if (!currentUser) return false;
     const gpa = parseFloat(currentUser.gpa || currentUser.GPA || '0');
@@ -250,7 +249,7 @@ const JobOffers = () => {
             )}
             {isAdmin && (
               <>
-                <Button onClick={() => setAddDialogOpen(true)}>
+                <Button onClick={() => { setFormData({}); setAddDialogOpen(true); }}>
                   <PlusCircle className="h-4 w-4 mr-1" /> Add Job
                 </Button>
                 <Button variant="outline" onClick={handleAdminLogout}>Logout</Button>
@@ -289,7 +288,7 @@ const JobOffers = () => {
           </TabsList>
         </Tabs>
 
-        {/* Animated Job Cards */}
+        {/* Job Cards */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -317,8 +316,7 @@ const JobOffers = () => {
                   <div className="flex gap-2 mt-4">
                     <Button onClick={() => { setSelectedJob(job); setViewDialogOpen(true); }} size="sm">View</Button>
 
-                    {/* ✅ Apply Button visible only in Eligible tab */}
-                    {activeTab === 'eligible' && !isAdmin && (
+                    {!isAdmin && activeTab === 'eligible' && (
                       <Button
                         size="sm"
                         className="bg-green-600 text-white hover:bg-green-700"
@@ -345,6 +343,78 @@ const JobOffers = () => {
             ))}
           </motion.div>
         </AnimatePresence>
+
+        {/* ✅ Add / Edit Job Dialog */}
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{formData.id ? 'Edit Job Offer' : 'Add New Job Offer'}</DialogTitle>
+              <DialogDescription>Enter job details below.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3">
+              <Label>Title</Label>
+              <Input value={formData.title || ''} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+
+              <Label>Type</Label>
+              <select className="border rounded-md w-full p-2" value={formData.type || ''} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
+                <option value="">Select Type</option>
+                <option value="Internship">Internship</option>
+                <option value="Full-Time">Full-Time</option>
+              </select>
+
+              <Label>Company</Label>
+              <select className="border rounded-md w-full p-2" value={formData.companyId || ''} onChange={(e) => setFormData({ ...formData, companyId: parseInt(e.target.value) })}>
+                <option value="">Select Company</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+
+              <Label>Location</Label>
+              <Input value={formData.location || ''} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+
+              <Label>Compensation (₹)</Label>
+              <Input type="number" value={formData.compensation || ''} onChange={(e) => setFormData({ ...formData, compensation: e.target.value })} />
+
+              <Label>Deadline</Label>
+              <Input type="date" value={formData.deadline ? formData.deadline.split('T')[0] : ''} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
+
+              <Label>Minimum GPA</Label>
+              <Input type="number" step="0.1" value={formData.minGPA || ''} onChange={(e) => setFormData({ ...formData, minGPA: e.target.value })} />
+
+              <Label>10th Marks (%)</Label>
+              <Input type="number" value={formData.minTenth || ''} onChange={(e) => setFormData({ ...formData, minTenth: e.target.value })} />
+
+              <Label>12th Marks (%)</Label>
+              <Input type="number" value={formData.minTwelfth || ''} onChange={(e) => setFormData({ ...formData, minTwelfth: e.target.value })} />
+
+              <Label>Description</Label>
+              <Input value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+
+              <Button onClick={handleSaveJob} className="bg-green-600 text-white mt-3">
+                {formData.id ? 'Update Job' : 'Create Job'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ✅ Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-sm text-center">
+            <DialogHeader>
+              <DialogTitle className="text-red-600 flex justify-center items-center gap-2">
+                <AlertTriangle className="h-5 w-5" /> Confirm Deletion
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this job offer? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center gap-3 mt-4">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDeleteJob}>Delete</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* ✅ Admin Login Dialog */}
         <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
