@@ -9,6 +9,7 @@ from routes.register import register_bp
 from routes.login import login_bp
 from routes.joboffer import joboffers_bp
 from routes.companies import bp as companies_bp
+from routes.apply import bp as apply_bp
 
 load_dotenv()
 
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(login_bp)
     app.register_blueprint(joboffers_bp)
     app.register_blueprint(companies_bp)
+    app.register_blueprint(apply_bp)
 
     # ✅ Always include CORS headers
     # @app.after_request
