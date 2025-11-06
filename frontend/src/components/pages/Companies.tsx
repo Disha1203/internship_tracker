@@ -16,6 +16,7 @@ import {
   Trash2,
   PlusCircle,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -42,6 +43,8 @@ const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -96,6 +99,30 @@ const Companies = () => {
     setOpenForm(true);
   };
 
+  const confirmDeleteCompany = (company: Company) => {
+    setCompanyToDelete(company);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteCompany = async () => {
+    if (!companyToDelete) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/${companyToDelete.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Delete failed");
+      toast.success(`Deleted company: ${companyToDelete.name}`);
+      fetchCompanies();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setOpenDeleteDialog(false);
+      setCompanyToDelete(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = editingCompany ? "PUT" : "POST";
@@ -119,19 +146,6 @@ const Companies = () => {
           : "Company added successfully"
       );
       setOpenForm(false);
-      fetchCompanies();
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  };
-
-  const handleDeleteCompany = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this company?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Delete failed");
-      toast.success("Company deleted successfully");
       fetchCompanies();
     } catch (err: any) {
       toast.error(err.message);
@@ -207,9 +221,9 @@ const Companies = () => {
                       <Edit2 className="h-4 w-4 mr-1" /> Edit
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
-                      onClick={() => handleDeleteCompany(company.id)}
+                      onClick={() => confirmDeleteCompany(company)}
                     >
                       <Trash2 className="h-4 w-4 mr-1" /> Delete
                     </Button>
@@ -280,6 +294,34 @@ const Companies = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex justify-center items-center gap-2">
+              <AlertTriangle className="h-5 w-5" /> Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <strong>{companyToDelete?.name}</strong>? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-center gap-3 mt-5">
+            <Button
+              variant="outline"
+              onClick={() => setOpenDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCompany}>
+              Delete
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
