@@ -1,11 +1,15 @@
-# --- Node / React ---
+# ==========================
+# FRONTEND (React + TypeScript)
+# ==========================
 frontend/node_modules/
 frontend/.env
 frontend/build/
 frontend/dist/
 frontend/.DS_Store
 
-# --- Python / Flask ---
+# ==========================
+# BACKEND (Python + Flask)
+# ==========================
 backend/__pycache__/
 backend/*.pyc
 backend/instance/
@@ -13,15 +17,34 @@ backend/.env
 backend/.DS_Store
 backend/venv/
 backend/.pytest_cache/
+backend/*.sqlite3
 
-# --- Logs ---
+# ==========================
+# PYTHON (general)
+# ==========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+venv/
+.env
+
+# ==========================
+# LOGS
+# ==========================
 *.log
 
-# --- System / IDE files ---
+# ==========================
+# SYSTEM / IDE FILES
+# ==========================
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# --- Root-level environment files ---
+# ==========================
+# ROOT-LEVEL ENVIRONMENT FILES
+# ==========================
 .env
