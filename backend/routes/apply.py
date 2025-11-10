@@ -1,12 +1,16 @@
+# apply.py
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 import MySQLdb
 from datetime import datetime
+from flask_cors import CORS
 
-bp = Blueprint('apply', __name__, url_prefix='/api')
+# Blueprint
+apply_bp = Blueprint('apply', __name__, url_prefix='/api')
+CORS(apply_bp)  # ✅ enable CORS for React frontend
 
-# ✅ APPLY FOR A JOB (trigger-compatible)
-@bp.route('/apply', methods=['POST'])
+# 🟢 POST /api/apply - Apply for a job
+@apply_bp.route('/apply', methods=['POST'])
 def apply_job():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -28,12 +32,12 @@ def apply_job():
 
     except MySQLdb.IntegrityError as e:
         conn.rollback()
-
         err_str = str(e)
+
         # ✅ Handle duplicate application or trigger-based eligibility rejection
         if "Duplicate entry" in err_str:
             return jsonify({'error': 'You have already applied for this job'}), 400
-        elif "Application blocked" in err_str:  # from the trigger SIGNAL
+        elif "Application blocked" in err_str:  # trigger-based eligibility rejection
             return jsonify({'error': 'Application blocked: You are not eligible for this job'}), 400
         elif "foreign key constraint fails" in err_str:
             return jsonify({'error': 'Invalid student or job reference'}), 400
@@ -49,8 +53,8 @@ def apply_job():
         conn.close()
 
 
-# ✅ GET ALL APPLIED JOBS
-@bp.route('/applied/<int:student_id>', methods=['GET'])
+# 🟢 GET /api/applied/<student_id> - Fetch all applied jobs for a student
+@apply_bp.route('/applied/<int:student_id>', methods=['GET'])
 def get_applied_jobs(student_id):
     conn = get_db_connection()
     cur = conn.cursor(MySQLdb.cursors.DictCursor)
@@ -58,23 +62,31 @@ def get_applied_jobs(student_id):
     try:
         cur.execute("""
             SELECT 
-                a.ApplicationID, a.JobID, a.AppliedDate, a.Status,
-                j.Title, j.JobType, j.Location, j.Compensation, 
-                j.Deadline, c.CompanyName
+                a.ApplicationID AS application_id,
+                a.JobID AS job_id,
+                a.AppliedDate AS applied_date,
+                a.Status AS status,
+                j.Title AS title,
+                j.JobType AS job_type,
+                j.Location AS location,
+                j.Compensation AS compensation,
+                j.Deadline AS deadline,
+                c.CompanyName AS company_name
             FROM APPLICATIONS a
             JOIN JOB_OFFER j ON a.JobID = j.JobID
             JOIN COMPANY c ON j.CompanyID = c.CompanyID
             WHERE a.StudentID = %s
             ORDER BY a.AppliedDate DESC
         """, (student_id,))
+
         results = cur.fetchall()
 
-        # Format datetime fields
+        # ✅ Format datetime fields for frontend (ISO strings)
         for row in results:
-            if isinstance(row.get("AppliedDate"), datetime):
-                row["AppliedDate"] = row["AppliedDate"].isoformat()
-            if isinstance(row.get("Deadline"), datetime):
-                row["Deadline"] = row["Deadline"].isoformat()
+            if isinstance(row.get("applied_date"), datetime):
+                row["applied_date"] = row["applied_date"].isoformat()
+            if isinstance(row.get("deadline"), datetime):
+                row["deadline"] = row["deadline"].isoformat()
 
         return jsonify(results), 200
 
