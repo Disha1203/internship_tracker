@@ -283,7 +283,8 @@ END$$
 
 DELIMITER ;
 
-
+ALTER TABLE APPLICATIONS
+ADD CONSTRAINT unique_student_job UNIQUE (StudentID, JobID);
 
 
 
