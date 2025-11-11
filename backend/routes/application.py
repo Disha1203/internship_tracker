@@ -15,21 +15,29 @@ def get_applications(student_id):
 
     query = """
     SELECT 
+    t.id,
+    t.company,
+    t.position,
+    t.appliedDate,
+    t.status,
+    CASE 
+        WHEN t.status = 'Accepted' THEN 'Selected'
+        WHEN t.status = 'Rejected' THEN 'Not Selected'
+        ELSE 'Pending'
+    END AS result
+FROM (
+    SELECT 
         a.ApplicationID AS id,
         c.CompanyName AS company,
         j.Title AS position,
-        DATE_FORMAT(a.AppliedDate, '%%Y-%%m-%%d') AS appliedDate,
-        a.Status AS status,
-        CASE 
-            WHEN a.Status = 'Accepted' THEN 'Selected'
-            WHEN a.Status = 'Rejected' THEN 'Not Selected'
-            ELSE 'Pending'
-        END AS result
+        DATE_FORMAT(a.AppliedDate, '%Y-%m-%d') AS appliedDate,
+        a.Status AS status
     FROM APPLICATIONS a
-    JOIN JOB_OFFER j ON a.JobID = j.JobID
-    JOIN COMPANY c ON j.CompanyID = c.CompanyID
+    INNER JOIN JOB_OFFER j ON a.JobID = j.JobID
+    INNER JOIN COMPANY c ON j.CompanyID = c.CompanyID
     WHERE a.StudentID = %s
-    ORDER BY a.AppliedDate DESC;
+) AS t
+ORDER BY t.appliedDate DESC;
     """
 
     cursor.execute(query, (student_id,))
