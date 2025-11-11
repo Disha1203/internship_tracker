@@ -1,12 +1,48 @@
+import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { useAuth } from '../../contexts/AuthContext';
 import { FileText, Sparkles, User } from 'lucide-react';
-import React from 'react';
 
 const Applications = () => {
-  const { applications, currentUser } = useAuth();
+  const { currentUser } = useAuth();
+  const [applications, setApplications] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    accepted: 0,
+    pending: 0,
+    interviews: 0,
+  });
+
+  const API_URL = "http://127.0.0.1:5000"; // ✅ Flask backend
+
+  // Fetch applications + stats
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    // 1️⃣ Fetch applications
+    fetch(`${API_URL}/api/applications/${currentUser.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setApplications(data || []);
+      })
+      .catch((err) => console.error("Error fetching applications:", err));
+
+    // 2️⃣ Fetch stats
+    fetch(`${API_URL}/api/applications/${currentUser.id}/stats`)
+      .then((res) => res.json())
+      .then((data) => {
+        const newStats = {
+          total: data.Total || 0,
+          accepted: data.Accepted || 0,
+          pending: (data.Applied || 0) + (data["Under Review"] || 0),
+          interviews: data["Interview Scheduled"] || 0,
+        };
+        setStats(newStats);
+      })
+      .catch((err) => console.error("Error fetching stats:", err));
+  }, [currentUser]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -23,13 +59,6 @@ const Applications = () => {
       default:
         return 'bg-gray-100 text-gray-700';
     }
-  };
-
-  const stats = {
-    total: applications.length,
-    accepted: applications.filter(app => app.status === 'Accepted').length,
-    pending: applications.filter(app => app.status === 'Applied' || app.status === 'Under Review').length,
-    interviews: applications.filter(app => app.status === 'Interview Scheduled').length,
   };
 
   return (
@@ -51,13 +80,12 @@ const Applications = () => {
                 <FileText className="h-6 w-6 text-purple-600" />
                 <h1 className="text-gray-900">My Applications</h1>
               </div>
-              <p className="text-gray-600 text-sm">
-                Track all your job applications and their current status
-              </p>
+              <p className="text-gray-600 text-sm">Track all your job applications and their current status</p>
             </div>
           </div>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="border-2 border-blue-200 bg-white hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
@@ -85,6 +113,7 @@ const Applications = () => {
           </Card>
         </div>
 
+        {/* Applications Table */}
         {applications.length === 0 ? (
           <Card className="border-2 border-purple-200 bg-white">
             <CardContent className="p-12 text-center">
@@ -117,16 +146,12 @@ const Applications = () => {
                     {applications.map((application) => (
                       <TableRow key={application.id} className="hover:bg-purple-50">
                         <TableCell>{application.company}</TableCell>
-                        <TableCell className="text-sm text-gray-600">{application.position}</TableCell>
-                        <TableCell className="text-sm text-gray-600">
-                          {new Date(application.appliedDate).toLocaleDateString()}
-                        </TableCell>
+                        <TableCell>{application.position}</TableCell>
+                        <TableCell>{new Date(application.appliedDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(application.status)}>
-                            {application.status}
-                          </Badge>
+                          <Badge className={getStatusColor(application.status)}>{application.status}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">{application.result}</TableCell>
+                        <TableCell>{application.result}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -8,6 +8,7 @@ from routes.login import login_bp
 from routes.joboffer import joboffers_bp
 from routes.companies import bp as companies_bp
 from routes.apply import apply_bp
+from routes.application import applications_bp  
 
 load_dotenv()
 
@@ -53,6 +54,7 @@ app.register_blueprint(login_bp)
 app.register_blueprint(joboffers_bp)
 app.register_blueprint(companies_bp)
 app.register_blueprint(apply_bp)
+app.register_blueprint(applications_bp)
 
 @app.route("/", methods=["GET"])
 def home():
