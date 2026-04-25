@@ -1,4 +1,4 @@
-# 🚀 Internship & Placement Tracker
+#  Internship & Placement Tracker
 
 A full-stack platform for managing student placements, internships, applications, alumni guidance, and interview insights.
 
@@ -9,23 +9,23 @@ This project integrates a Flask backend, MySQL database, and a React + TypeScrip
 ### **🎯 Features**
 ----
 
-#### 👨‍🎓 Student Module
+#### Student Module
 - Secure registration & login
 - View job/internship offers
 - Apply to jobs (duplicate prevention)
 - Dashboard with analytics (total applied, accepted, pending, interviews)
 
-#### 🏢 Company & Job Offers
+#### Company & Job Offers
 - CRUD operations via stored procedures
 - Detailed job requirements (GPA, 10th/12th marks, skills)
 - Automatic re-evaluation of student applications when criteria change
 
-#### 📄 Applications
+#### Applications
 - Gradient status badges
 - Dynamic statistics
 - Full table view of all applications
 
-#### 🎓 Alumni Network 
+#### Alumni Network 
 - Grid-based alumni cards
 - Email contact button
 
@@ -34,25 +34,25 @@ This project integrates a Flask backend, MySQL database, and a React + TypeScrip
 
 ---
 
-### 🛠️ Backend Architecture
+###  Backend Architecture
 - Flask with modular .py files for auth, applications, company CRUD, job offers
 - MySQL (MySQLdb) for database connectivity
 - Normalized schema with Student, Company, JobOffer, Applications, Placement, Internship, Admin, Department
 
-### 🧠 Key SQL Logic
+### Key SQL Logic
 - Eligibility Trigger: blocks applications if GPA/marks don’t meet requirements
 - Auto Application Re-check: updates or rejects applications when criteria are modified
 - Stored Procedures: add/update/delete companies
 - Unique Constraint: prevents students from applying twice to the same job
   
 
-### 🔐 Security
+### Security
 - Password hashing (no plaintext storage)
 - Backend validation + DB-level triggers
 - Duplicate application prevention
 - Controlled CORS for API requests
 
-### 🧩 Frontend Stack
+### Frontend Stack
 React + TypeScript
 Tailwind CSS + ShadCN components
 Lucide icons
@@ -60,7 +60,7 @@ Fully responsive, gradient-based UI
 
 ---
 
-### 🔮 Future Enhancements
+### Future Enhancements
 
 - Placement analytics with charts
 - Department based 
@@ -71,7 +71,7 @@ Fully responsive, gradient-based UI
 
 ---
 
-### 📦 Dependencies
+### Dependencies
 **Frontend**
 - `React`
 - `TypeScript`
@@ -89,7 +89,7 @@ Fully responsive, gradient-based UI
 
 ---
 
-### 🚀 Run Locally
+### Run Locally
 
 **Clone repo**
 
